@@ -1,18 +1,7 @@
 //require packages
-const express = require("express");
-const mysql = require("mysql2");
-const console = require("console.table");
-const { createConnection } = require("net");
-const { Server } = require("http");
+
 const inquirer = require("inquirer");
-const { response } = require("express");
-
-const PORT = process.env.PORT || 3001;
-const app = express();
-
-// use express
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+const mysql = require("mysql2");
 
 // connect
 const db = mysql.createConnection({
@@ -24,113 +13,83 @@ const db = mysql.createConnection({
   database: "employee_db",
 });
 
-app.use((req, res) => {
-  res.status(404).end();
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 //use inquirer prompt to start questions.
-function startQuestions() {
-  inquirer
-    .prompt([
-      {
-        name: "questions",
-        type: "list",
-        choices: [
-          {
-            name: "View all departments",
-            value: "view_departments",
-          },
+function startQuestions(userChoice) {
+  switch (userChoice) {
+    case "View all departments":
+      userChoice = viewAllDepartments();
+      break;
 
-          {
-            name: "View all roles",
-            value: "view_roles",
-          },
+    case "View all roles":
+      userChoice = viewAllRoles();
+      break;
 
-          {
-            name: "View all employees",
-            value: "view_employees",
-          },
-          {
-            name: "Add a department",
-            value: "add_department",
-          },
+    case "View all employees":
+      userChoice = viewAllEmployees();
+      break;
 
-          { name: "Add a role", value: "add_role" },
+    case "Add a role":
+      userChoice = addRole();
+      break;
 
-          { name: "Add an employee", value: "add_employee" },
+    case "Add an employee":
+      userChoice = addEmployee();
+      break;
 
-          { name: "Update an employee role", value: "update_employee" },
-          { name: "I am finished", value: "finished" },
-        ],
-        message: "Where would you like to start?",
-      },
-    ])
-    .then((answer) => {
-      if (answer.questions === "View all departments") {
-        viewAllDepartments();
-      } else if (answer.questions === "View all roles") {
-        viewAllRoles();
-      } else if (answer.questions === "View all employees") {
-        viewAllEmployees();
-      } else if (answer.questions === "Add a department") {
-        addDepartment();
-      } else if (answer.questions === "Add a role") {
-        addRole();
-      } else if (answer.questions === "Add an employee") {
-        addEmployee();
-      }
-    });
+    case "Update an employee role":
+      userChoice = updateRole();
+      break;
+
+    case "Delete an employee":
+      userChoice = deleteEmployee();
+      break;
+
+    case "I'm done":
+      userChoice = endServer();
+      break;
+  }
 }
 
 function viewAllEmployees() {
   //use query
   db.query("SELECT * employees", function (err, result, fields) {
-    console.table(results);
+    console.table(result);
   });
-  startQuestions();
 }
 
 function viewAllDepartments() {
   //use query
-  db.query("SELECT * department", function (err, result, fields) {
-    console.table(results);
+
+  db.query("SELECT * from department", function (err, result) {
+    console.table(result);
   });
 }
 
 function viewAllRoles() {
   //use query
-  db.query("SELECT * role", function (err, result, fields) {
-    console.table(results);
+  db.query("SELECT * role", function (err, result) {
+    console.table(result);
   });
 }
 
-//add department
-function addDepartment(answer) {
-  inquirer
-    .prompt([
-      {
-        name: "department",
-        type: "input",
-        message:
-          "Please enter the name of the department you would like to add",
-      },
-    ])
-    .then((answer) => {
-      db.query(
-        "INSERT INTO department(name)",
-        values({
-          name: answer.department,
-        })
-      );
-    });
-}
+// //add department
+// function addDepartment() {
+//   inquirer
+//     .prompt([
+//       {
+//         name: "department",
+//         type: "input",
+//         message:
+//           "Please enter the name of the department you would like to add",
+//       },
+//     ])
+//     .then((answer) => {
+//       db.query("INSERT INTO department(name) values(?)", [answer.department]);
+//     });
+// }
 
 //name, salary, and deparetment
-function addRole(answer) {
+function addRole() {
   inquirer
     .prompt([
       {
@@ -147,21 +106,20 @@ function addRole(answer) {
         name: "input_department",
         type: "input",
         message:
-          "Please enter the name of the department that is attached to this new role",
+          "Please enter the department ID for this role. Sales: 1, Accounting: 2, Human Resources: 3, Quality Assurance: 4, Warehouse: 5, Office Management: 6 ",
       },
     ])
     .then((answer) => {
-      db.query("INSERT INTO role(title, salary, department_id");
-      values({
-        title: answer.role,
-        salary: answer.salary,
-        department_id: department_id,
-      });
+      db.query("INSERT INTO role(title, salary, department_id) values(?,?,?)", [
+        answer.role,
+        answer.salary,
+        answer.input_department,
+      ]);
     });
 }
 
 //first name, last name, role, manager
-function addEmployee(answer) {
+function addEmployee() {
   inquirer
     .prompt([
       {
@@ -177,53 +135,78 @@ function addEmployee(answer) {
       {
         name: "role",
         type: "input",
-        message: "Please enter the role of the employee",
+        message:
+          "Please enter the role ID for the employee. Salesman: 1, Accountant: 2, HR Manager: 3, Quality Assurance Manager: 4, Warehouse worker: 5, Office Manager: 6 ",
       },
       {
         name: "manager",
         type: "input",
-        message: "Please enter the name of the employee's manager",
+        message:
+          "Please enter the integer '1' for the manager ID, as all employees report to Jim Halpert.",
       },
     ])
     .then((answer) => {
       db.query(
-        "INSERT INTO employees(first_name, last_name, role_id, manager_id"
+        "INSERT INTO employees(first_name, last_name, role_id, manager_id) values (?,?,?,?)",
+        [answer.first_name, answer.last_name, role_id, manager_id]
       );
-      values({
-        first_name: answer.first_name,
-        last_name: answer.last_name,
-        role_id: role_id,
-        manager_id: manager_id,
-      });
-      startQuestions();
     });
 }
 
-// function updateEmployee() {
-//   inquirer
-//     .prompt([
-//       {
-//         name: "update",
-//         type: "input",
-//         message: "Type 'Yes' or 'No' if you would like to add an employee",
-//       },
-//     ])
-//     .then(function (response) {
-//       if (response.update === "Yes") {
-//         db.query("UPDATE employees SET name = ? WHERE id = ?");
-//       } else if (response.update === "No") {
-//         endServer();
-//       }
-//     });
-// }
+function updateRole() {
+  inquirer
+    .prompt([
+      {
+        name: "last_name",
+        type: "input",
+        message: "Please type in the employee's last name",
+      },
+      {
+        name: "role",
+        type: "input",
+        message:
+          "Please type in the new role ID for this employee. Salesman: 1, Accountant: 2, HR Manager: 3, Quality Assurance Manager: 4, Warehouse worker: 5, Office Manager: 6  ",
+      },
+    ])
+    .then((answer) => {
+      db.query("UPDATE employees SET last_name = ? WHERE id = ? values (?,?)", [
+        answer.last_name,
+        answer.role_id,
+      ]);
+    });
+}
 
-// //update employee
-// updateEmployee();
+function deleteEmployee() {
+  inquirer
+    .prompt([
+      {
+        name: "last_name",
+        type: "input",
+        message: "Please enter the last name of the employee",
+      },
+    ])
+    .then((answer) => {
+      db.query("DELETE FROM employees WHERE last_name = ? values (?)", [
+        answer.last_name,
+      ]);
+    });
+}
 
-//start questions
-startQuestions();
-
-// //end Server
-// function endServer() {
-//   Server.destroy();
-// }
+inquirer
+  .prompt({
+    name: "userChoice",
+    type: "list",
+    message: "Where would you like to start?",
+    choices: [
+      "View all departments",
+      "View all roles",
+      "View all employees",
+      "Add a role",
+      "Add an employee",
+      "Update an employee role",
+      "I'm done",
+    ],
+  })
+  .then((response) => {
+    startQuestions(response.userChoice);
+  });
