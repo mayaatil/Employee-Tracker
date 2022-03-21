@@ -52,7 +52,7 @@ function startQuestions(userChoice) {
 
 function viewAllEmployees() {
   //use query
-  db.query("SELECT * employees", function (err, result, fields) {
+  db.query("SELECT * from employees", function (err, result, fields) {
     console.table(result);
   });
 }
@@ -67,7 +67,7 @@ function viewAllDepartments() {
 
 function viewAllRoles() {
   //use query
-  db.query("SELECT * role", function (err, result) {
+  db.query("SELECT * from role", function (err, result) {
     console.table(result);
   });
 }
@@ -148,7 +148,7 @@ function addEmployee() {
     .then((answer) => {
       db.query(
         "INSERT INTO employees(first_name, last_name, role_id, manager_id) values (?,?,?,?)",
-        [answer.first_name, answer.last_name, role_id, manager_id]
+        [answer.first_name, answer.last_name, answer.role_id, answer.manager_id]
       );
     });
 }
@@ -159,17 +159,17 @@ function updateRole() {
       {
         name: "last_name",
         type: "input",
-        message: "Please type in the employee's last name",
+        message: "Please type in the last name employee. ",
       },
       {
         name: "role",
         type: "input",
         message:
-          "Please type in the new role ID for this employee. Salesman: 1, Accountant: 2, HR Manager: 3, Quality Assurance Manager: 4, Warehouse worker: 5, Office Manager: 6  ",
+          "Please type in the new id for this employee. Salesman: 1, Accountant: 2, HR Manager: 3, Quality Assurance Manager: 4, Warehouse worker: 5, Office Manager: 6  ",
       },
     ])
     .then((answer) => {
-      db.query("UPDATE employees SET last_name = ? WHERE id = ? values (?,?)", [
+      db.query("UPDATE employees SET last_name = ? WHERE role_id = ?  ", [
         answer.last_name,
         answer.role_id,
       ]);
@@ -180,15 +180,14 @@ function deleteEmployee() {
   inquirer
     .prompt([
       {
-        name: "last_name",
+        name: "id",
         type: "input",
-        message: "Please enter the last name of the employee",
+        message:
+          "Please enter the id of the employee. Jim: 1, Oscar: 2, Toby: 3, Creed: 4, Daryl: 5, Michael: 6  ",
       },
     ])
     .then((answer) => {
-      db.query("DELETE FROM employees WHERE last_name = ? values (?)", [
-        answer.last_name,
-      ]);
+      db.query("DELETE FROM employees WHERE id = ? ", [answer.id]);
     });
 }
 
@@ -210,3 +209,7 @@ inquirer
   .then((response) => {
     startQuestions(response.userChoice);
   });
+
+function endServer() {
+  server.close();
+}

@@ -10,6 +10,8 @@ The employee tracker allows the user to manage a company's employee database usi
 
 ## Link to Walkthrough Demo
 
+- Here is the link to the demo: https://drive.google.com/file/d/11nHdfafmnhiR0lrHbwoO8QEzMGuQQMoy/view
+
 ## Links to Application
 
 - Here is the repo : [mayaatil/repo](https://github.com/mayaatil/Employee-Tracker)
